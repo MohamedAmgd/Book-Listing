@@ -1,3 +1,18 @@
+/*
+ *  Copyright (C) 2020 Mohamed Amgd
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package com.example.booklisting;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,7 +23,6 @@ import android.content.Loader;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -27,14 +41,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     String apiURL = "https://www.googleapis.com/books/v1/volumes";
     BookAdapter adapter;
     ListView bookListView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         // Find a reference to the {@link ListView} in the layout
-        bookListView = (ListView) findViewById(R.id.list);
+        bookListView = findViewById(R.id.list);
 
         // Create a new adapter that takes an empty list of books as input
         adapter = new BookAdapter(this,0, new ArrayList<Book>());
@@ -49,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
         if(!bookName.equals("")) {
-            getLoaderManager().initLoader(x, null, this).forceLoad();
+            getLoaderManager().initLoader(0, null, this).forceLoad();
         }
 
         // Set an item click listener on the ListView, which sends an intent to a web browser
@@ -70,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 startActivity(websiteIntent);
             }
         });
-        ImageButton searchBtn = (ImageButton) findViewById(R.id.button);
+        ImageButton searchBtn = findViewById(R.id.button);
         searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -80,47 +93,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         findViewById(R.id.progressBar).setVisibility(View.GONE);
 
         Log.i("test","onCreate");
-    }
-
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.i("test" , "onStart");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.i("test" , "onResume");
-
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.i("test" , "onRestart");
-
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.i("test" , "onPause");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.i("test" , "onStop");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.i("test" , "onDestroy");
-
-
     }
 
     public boolean isNetworkAvailable() {
@@ -151,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             } else {
                 ((TextView) findViewById(R.id.emptyStateText)).setText("No Internet Connection \n please try again");
             }
-            ((TextView) findViewById(R.id.emptyStateText)).setVisibility(View.VISIBLE);
+            (findViewById(R.id.emptyStateText)).setVisibility(View.VISIBLE);
         }
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         Log.i(LOG_TAG,"onLoadFinished");
@@ -164,25 +136,24 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Log.i(LOG_TAG,"onLoaderReset");
     }
 
-
-    //global variables for search
-    int x = 0;
+    //global variables for search method
     static String bookName ="";
 
     public void search(){
-        EditText editText = (EditText) findViewById(R.id.book_name);
-        if(!bookName.equals(editText.getText().toString()) && !bookName.equals("")) {
-            getLoaderManager().destroyLoader(x);
+        EditText editText = findViewById(R.id.book_name);
+
+        // To make sure that this is a new search input
+        // If so destroy the previous loader
+        if(!bookName.equals(editText.getText().toString())) {
+            getLoaderManager().destroyLoader(0);
         }
         bookName = editText.getText().toString();
         if(!bookName.isEmpty()){
             if(isNetworkAvailable()) {
                 adapter.clear();
                 findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-                ((TextView) findViewById(R.id.emptyStateText)).setVisibility(View.GONE);
-                getLoaderManager().initLoader(x, null, this).forceLoad();
-                //new SearchThread().execute(URL);
-
+                ( findViewById(R.id.emptyStateText)).setVisibility(View.GONE);
+                getLoaderManager().initLoader(0, null, this).forceLoad();
             }
             else {
                 findViewById(R.id.progressBar).setVisibility(View.GONE);
@@ -201,41 +172,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         uriBuilder.appendQueryParameter("projection","lite");
         uriBuilder.appendQueryParameter("q",bookName);
         return uriBuilder.toString();
-    }
-
-    private class SearchThread extends AsyncTask<String, Void, ArrayList<Book>> {
-        @Override
-        protected ArrayList<Book> doInBackground(String... urls) {
-            // Don't perform the request if there are no URLs, or the first URL is null.
-            if (urls[0] == null || urls[0].length() <1) {
-                return null;
-            }
-            return new Query(urls[0]).extractBooks();
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<Book> books) {
-            if(books != null || books.size()<1){
-
-                // Clear the adapter of previous book data
-                adapter.clear();
-
-                // If there is a valid list of {@link Book}s, then add them to the adapter's
-                // data set. This will trigger the ListView to update.
-                if (books != null && !books.isEmpty()) {
-                    adapter.addAll(books);
-                }
-            }
-            else {
-                if (isNetworkAvailable()) {
-                    ((TextView) findViewById(R.id.emptyStateText)).setText("No books Found");
-                } else {
-                    ((TextView) findViewById(R.id.emptyStateText)).setText("No Internet Connection \nplease try again");
-                }
-                ((TextView) findViewById(R.id.emptyStateText)).setVisibility(View.VISIBLE);
-            }
-            findViewById(R.id.progressBar).setVisibility(View.GONE);
-        }
     }
 
 
