@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2020 Mohamed Amgd
+ *  Copyright 2020 Mohamed Amgd
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
