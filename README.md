@@ -1,9 +1,9 @@
 # Book-Listing
 
-#### An Android app uses Google Books API to search for books
+ An Android app uses Google Books API to search for books
 
 ## Demo
-#### An Android native mobile app developed using java code base
+ An Android native mobile app developed using java code base
 
 ## Screenshot
 
